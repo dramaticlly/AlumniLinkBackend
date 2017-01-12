@@ -18,3 +18,16 @@ curl -F "file=@hello.test" "$DEST/store"
 
 echo -e "\n> To retrieve a uploaded file like hello.test"
 curl "$DEST/store/files/hello.test"
+
+cat <<End-of-msg
+
+https://spring.io/guides/gs/accessing-mongodb-data-rest/
+
+--------------------
+echo -e "\n To verify existing # of customers in repository"
+curl "$DEST/people"
+
+echo -e "\n To insert new customer into repository"
+curl -i -X POST -H "Content-Type:application/json" -d '{"firstName":"Frodo","lastName":"Baggins"}' "$DEST/people"
+--------------------
+End-of-msg
