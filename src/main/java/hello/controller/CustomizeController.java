@@ -6,13 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
-import org.springframework.hateoas.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @RepositoryRestController
@@ -54,6 +56,25 @@ public class CustomizeController {
         List<Friends> friends = repository.findByGraduationYear(year);
         friends.forEach( friend ->
                 log.info("findByGraduationYear: args(" + year + ") :" + friend.toString()));
+        return ResponseEntity.ok(friends);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/friends/search/recommend")
+    public @ResponseBody ResponseEntity<?> getRecommendation(@Param("uid") String uid){
+        Friends reference = repository.findOne(uid);
+        List<Friends> friends = new ArrayList<>();
+        friends.addAll(repository.findByUniversity(reference.getUniversity()));
+        friends.addAll(repository.findByMajor(reference.getMajor()));
+        friends.addAll(repository.findByGraduationYear(reference.getGraduationYear()));
+
+        // TODO: remove duplicate from friends
+        Set<Friends> friendsSet = new HashSet<>();
+        friendsSet.addAll(friends);
+        friends.clear();
+        friends.addAll(friendsSet);
+        friends.remove(reference);
+
+        log.info("getRecommendation: reference("+reference.getId()+"); size: "+friends.size() + friends.toString());
         return ResponseEntity.ok(friends);
     }
 
