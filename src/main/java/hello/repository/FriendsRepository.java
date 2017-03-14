@@ -12,9 +12,8 @@ public interface FriendsRepository extends MongoRepository<Friends, String>{
 
     Friends findByFirstName(@Param("name") String firstName);
     Friends findByEmail(@Param("email") String email);
-    //TODO, optimize them into query, hard to parse these
-    List<String> findByAcceptedFriendList(@Param("id") String id);
-    List<String> findByPendingFriendList(@Param("id") String id);
 
-
+    List<Friends> findByUniversity(@Param("university") String university);
+    List<Friends> findByMajor(@Param("major") String major);
+    List<Friends> findByGraduationYear(@Param("year") int year);
 }

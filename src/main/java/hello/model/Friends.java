@@ -22,6 +22,11 @@ public class Friends {
     private String firstName;
     private String lastName;
     private String email;
+
+    private int graduationYear;
+    private String university;
+    private String major;
+
     private List<String> acceptedFriendList;
     private List<String> pendingFriendList;
 
