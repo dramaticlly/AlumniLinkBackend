@@ -2,12 +2,18 @@ package hello.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
+import org.springframework.hateoas.ResourceSupport;
 
 import java.util.List;
 
+/*
+when changed, also need to change FriendsResource and
+FriendsResourceAssembler.toResource mapping
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

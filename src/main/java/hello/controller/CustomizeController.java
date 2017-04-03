@@ -1,5 +1,7 @@
 package hello.controller;
 
+import hello.controller.assembler.FriendsResourceAssembler;
+import hello.controller.resource.FriendsResource;
 import hello.model.Friends;
 import hello.repository.FriendsRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -15,17 +17,30 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RepositoryRestController
 public class CustomizeController {
 
     private final FriendsRepository repository;
+    private final FriendsResourceAssembler assembler = new FriendsResourceAssembler();
 
     @Autowired
     public CustomizeController(FriendsRepository repo){
         repository = repo;
     }
+
+
+//    @RequestMapping(method = RequestMethod.GET, value = "/friends/")
+//    public @ResponseBody ResponseEntity<?> getEmais(@Param("uid") String email,@Param("friend_uid") String friend_uid){
+//        Friends friend = repository.findByEmail(email);
+//        log.info("findByEmail: args("+email + ") :" + friend.toString());
+//        //Resource<Friends> resource = new Resource<>(emails);
+//        return ResponseEntity.ok(friend);
+//    }
+
+
 
     @RequestMapping(method = RequestMethod.GET, value = "/friends/search/findByEmail")
     public @ResponseBody ResponseEntity<?> getEmais(@Param("email") String email){
@@ -63,8 +78,9 @@ public class CustomizeController {
     public @ResponseBody ResponseEntity<?> getRecommendation(@Param("uid") String uid){
         Friends reference = repository.findOne(uid);
         List<Friends> friends = new ArrayList<>();
-        friends.addAll(repository.findByUniversity(reference.getUniversity()));
-        friends.addAll(repository.findByMajor(reference.getMajor()));
+        // need find with ignored case
+        friends.addAll(repository.findByUniversityIgnoreCase(reference.getUniversity()));
+        friends.addAll(repository.findByMajorIgnoreCase(reference.getMajor()));
         friends.addAll(repository.findByGraduationYear(reference.getGraduationYear()));
 
         // TODO: remove duplicate from friends
@@ -74,8 +90,12 @@ public class CustomizeController {
         friends.addAll(friendsSet);
         friends.remove(reference);
 
+        //adding HATEOAS links for each friends in list
+        List<FriendsResource> resources = friends.stream().map(assembler::toResource).collect(Collectors.toList());
+        //friend.add(linkTo(methodOn(CustomizeController.class).getRecommendation(uid)).withSelfRel());
+
         log.info("getRecommendation: reference("+reference.getId()+"); size: "+friends.size() + friends.toString());
-        return ResponseEntity.ok(friends);
+        return ResponseEntity.ok(resources);
     }
 
 }
