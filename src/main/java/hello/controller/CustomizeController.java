@@ -11,6 +11,7 @@ import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
@@ -32,13 +33,37 @@ public class CustomizeController {
     }
 
 
-//    @RequestMapping(method = RequestMethod.GET, value = "/friends/")
-//    public @ResponseBody ResponseEntity<?> getEmais(@Param("uid") String email,@Param("friend_uid") String friend_uid){
-//        Friends friend = repository.findByEmail(email);
-//        log.info("findByEmail: args("+email + ") :" + friend.toString());
-//        //Resource<Friends> resource = new Resource<>(emails);
-//        return ResponseEntity.ok(friend);
-//    }
+    @RequestMapping(method = RequestMethod.GET, value = "/friends/befriend")
+    public @ResponseBody
+    ResponseEntity beFriends(@RequestParam("uid") String id_a, @RequestParam("friend_uid") String id_b){
+        Friends one = repository.findOne(id_a),
+                other = repository.findOne(id_b);
+        if (one == null || other == null){
+            log.error("Befriend hasing empty uid, uid_a = "+ id_a + " uid_b: " + id_b);
+            return ResponseEntity.badRequest().build();
+        }
+        List<String> oneAccepted = one.getAcceptedFriendList() == null ? new ArrayList<>() : one.getAcceptedFriendList();
+        List<String> onePending = one.getPendingFriendList() == null ? new ArrayList<>() : one.getPendingFriendList();
+        List<String> otherAccepted = other.getAcceptedFriendList() == null ? new ArrayList<>() : other.getAcceptedFriendList();
+        List<String> otherPending = other.getPendingFriendList() == null ? new ArrayList<>() : other.getPendingFriendList();
+
+        // adding to both acceptedFriendList
+        oneAccepted.add(id_b);
+        otherAccepted.add(id_a);
+        // removing from both pendingFriendList
+        onePending.remove(id_b);
+        otherPending.remove(id_a);
+
+        one.setAcceptedFriendList(oneAccepted);
+        one.setPendingFriendList(onePending);
+        other.setAcceptedFriendList(otherAccepted);
+        other.setPendingFriendList(otherPending);
+
+        repository.save(one);
+        repository.save(other);
+        log.info("Befriend uid_a = "+ id_a + " uid_b: " + id_b);
+        return ResponseEntity.ok().build();
+    }
 
 
 
