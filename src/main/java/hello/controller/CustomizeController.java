@@ -35,37 +35,70 @@ public class CustomizeController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/friends/befriend")
     public @ResponseBody
-    ResponseEntity beFriends(@RequestParam("uid") String id_a, @RequestParam("friend_uid") String id_b){
+    ResponseEntity beFriends(@RequestParam("uid") String id_a, @RequestParam("friend_uid") String id_b, @RequestParam("add") boolean add){
         Friends one = repository.findOne(id_a),
                 other = repository.findOne(id_b);
         if (one == null || other == null){
             log.error("Befriend hasing empty uid, uid_a = "+ id_a + " uid_b: " + id_b);
             return ResponseEntity.badRequest().build();
         }
+
+        log.info("Befriend uid_a = "+ id_a + " uid_b: " + id_b + " add: " + add);
+
         List<String> oneAccepted = one.getAcceptedFriendList() == null ? new ArrayList<>() : one.getAcceptedFriendList();
         List<String> onePending = one.getPendingFriendList() == null ? new ArrayList<>() : one.getPendingFriendList();
         List<String> otherAccepted = other.getAcceptedFriendList() == null ? new ArrayList<>() : other.getAcceptedFriendList();
         List<String> otherPending = other.getPendingFriendList() == null ? new ArrayList<>() : other.getPendingFriendList();
 
-        // adding to both acceptedFriendList
-        oneAccepted.add(id_b);
-        otherAccepted.add(id_a);
-        // removing from both pendingFriendList
-        onePending.remove(id_b);
-        otherPending.remove(id_a);
 
-        one.setAcceptedFriendList(oneAccepted);
-        one.setPendingFriendList(onePending);
-        other.setAcceptedFriendList(otherAccepted);
-        other.setPendingFriendList(otherPending);
+        if (!add){
+            // not willing to accept this friend request
+            onePending.remove(id_b);
+            one.setPendingFriendList(onePending);
+            repository.save(one);
+            return ResponseEntity.ok().build();
+        }
+        else {
+            // adding to both acceptedFriendList
+            oneAccepted.add(id_b);
+            otherAccepted.add(id_a);
+            // removing from both pendingFriendList
+            onePending.remove(id_b);
+            otherPending.remove(id_a);
 
-        repository.save(one);
-        repository.save(other);
-        log.info("Befriend uid_a = "+ id_a + " uid_b: " + id_b);
-        return ResponseEntity.ok().build();
+            one.setAcceptedFriendList(oneAccepted);
+            one.setPendingFriendList(onePending);
+            other.setAcceptedFriendList(otherAccepted);
+            other.setPendingFriendList(otherPending);
+
+            repository.save(one);
+            repository.save(other);
+            return ResponseEntity.ok().build();
+        }
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/friends/pendingfriend")
+    public @ResponseBody
+    ResponseEntity beFriends(@RequestParam("uid") String id_a, @RequestParam("listof") String id_b ) {
 
+        Friends one = repository.findOne(id_a),
+                other = repository.findOne(id_b);
+        if (one == null || other == null){
+            log.error("pendingfriend hasing empty uid, uid_a = "+ id_a + " uid_b: " + id_b);
+            return ResponseEntity.badRequest().build();
+        }
+        //add one to PendingFriendList of other
+        List<String> otherPending = other.getPendingFriendList() == null ? new ArrayList<>() : other.getPendingFriendList();
+
+        // removing from both pendingFriendList
+            otherPending.add(id_a);
+
+        other.setPendingFriendList(otherPending);
+
+        repository.save(other);
+        log.info("pendingfriend uid_a = "+ id_a + " uid_b: " + id_b);
+        return ResponseEntity.ok().build();
+    }
 
     @RequestMapping(method = RequestMethod.GET, value = "/friends/search/findByEmail")
     public @ResponseBody ResponseEntity<?> getEmais(@Param("email") String email){
@@ -114,6 +147,15 @@ public class CustomizeController {
         friends.clear();
         friends.addAll(friendsSet);
         friends.remove(reference);
+        // if existing friend
+        for (String acceptedUid: reference.getAcceptedFriendList()){
+            friends.remove(repository.findOne(acceptedUid));
+        }
+        // if pending friend
+        for (String pendingUid: reference.getPendingFriendList()){
+            friends.remove(repository.findOne(pendingUid));
+        }
+        // if user a is in user b pending friend list
 
         //adding HATEOAS links for each friends in list
         List<FriendsResource> resources = friends.stream().map(assembler::toResource).collect(Collectors.toList());

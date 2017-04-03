@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "building new jar files"
+./mvnw clean package
 echo "scp target/AlumniLinkBackend-0.1.0.jar hw:AlumniLink/jar"
 scp target/AlumniLinkBackend-0.1.0.jar hw:AlumniLink/jar
 
