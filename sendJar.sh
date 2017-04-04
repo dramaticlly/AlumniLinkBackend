@@ -20,5 +20,5 @@ scp target/AlumniLinkBackend-0.1.0.jar hw:AlumniLink/jar
 #mongo --db test -c frineds --file friends.json
 
 # TO backup and restore the mongo database
-#mongodump --db tets -c friends --out ./data/backup/
+#mongodump --db test -c friends --out ./data/backup/
 #mongorestore ./data/backup
