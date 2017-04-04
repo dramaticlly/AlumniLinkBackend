@@ -77,6 +77,7 @@ public class CustomizeController {
         }
     }
 
+    //add one to PendingFriendList of other
     @RequestMapping(method = RequestMethod.GET, value = "/friends/pendingfriend")
     public @ResponseBody
     ResponseEntity beFriends(@RequestParam("uid") String id_a, @RequestParam("listof") String id_b ) {
@@ -87,7 +88,6 @@ public class CustomizeController {
             log.error("pendingfriend hasing empty uid, uid_a = "+ id_a + " uid_b: " + id_b);
             return ResponseEntity.badRequest().build();
         }
-        //add one to PendingFriendList of other
         List<String> otherPending = other.getPendingFriendList() == null ? new ArrayList<>() : other.getPendingFriendList();
 
         // removing from both pendingFriendList
@@ -138,8 +138,8 @@ public class CustomizeController {
         List<Friends> friends = new ArrayList<>();
         // need find with ignored case
         friends.addAll(repository.findByUniversityIgnoreCase(reference.getUniversity()));
-        friends.addAll(repository.findByMajorIgnoreCase(reference.getMajor()));
-        friends.addAll(repository.findByGraduationYear(reference.getGraduationYear()));
+        //friends.addAll(repository.findByMajorIgnoreCase(reference.getMajor()));
+        //friends.addAll(repository.findByGraduationYear(reference.getGraduationYear()));
 
         // TODO: remove duplicate from friends
         Set<Friends> friendsSet = new HashSet<>();
